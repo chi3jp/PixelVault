@@ -1,7 +1,7 @@
 // Supabaseクライアントの初期化
 // ここにSupabaseダッシュボードからコピーしたURLとキーを貼り付けてください
-const supabaseUrl = "YOUR_SUPABASE_URL"; // Supabaseプロジェクトの URL
-const supabaseKey = "YOUR_SUPABASE_ANON_KEY"; // Supabaseプロジェクトの公開キー
+const supabaseUrl = "https://mmpiyvhqfcsgowpukvbl.supabase.co"; // Supabaseプロジェクトの URL
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tcGl5dmhxZmNzZ293cHVrdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTQyNTgsImV4cCI6MjA2ODM5MDI1OH0.4KkKjRAMeHTdqgnsT857F-392DjebvfmDWyUSkY1Hck"; // Supabaseプロジェクトの公開キー
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // 認証状態の確認
@@ -138,7 +138,7 @@ async function uploadImage(
 
   // ストレージにアップロード
   const { data: uploadData, error: uploadError } = await supabase.storage
-    .from("gallery_images")
+    .from("gallery-images")
     .upload(filePath, file);
 
   if (uploadError) {
@@ -148,7 +148,7 @@ async function uploadImage(
   // 公開URLを取得
   const {
     data: { publicUrl },
-  } = supabase.storage.from("gallery_images").getPublicUrl(filePath);
+  } = supabase.storage.from("gallery-images").getPublicUrl(filePath);
 
   // データベースに画像情報を保存
   const { data, error } = await supabase
@@ -166,7 +166,7 @@ async function uploadImage(
 
   if (error) {
     // エラーが発生した場合、アップロードした画像を削除
-    await supabase.storage.from("gallery_images").remove([filePath]);
+    await supabase.storage.from("gallery-images").remove([filePath]);
     return { error };
   }
 
@@ -190,7 +190,7 @@ async function getImages(galleryId) {
     const {
       data: { publicUrl },
     } = supabase.storage
-      .from("gallery_images")
+      .from("gallery-images")
       .getPublicUrl(image.storage_path);
 
     return { ...image, url: publicUrl };
@@ -214,7 +214,7 @@ async function deleteImage(imageId) {
 
   // ストレージから画像を削除
   const { error: storageError } = await supabase.storage
-    .from("gallery_images")
+    .from("gallery-images")
     .remove([imageData.storage_path]);
 
   if (storageError) {
