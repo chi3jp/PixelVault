@@ -1,4 +1,5 @@
 // Supabaseクライアントの初期化
+// ここにSupabaseダッシュボードからコピーしたURLとキーを貼り付けてください
 const supabaseUrl = "YOUR_SUPABASE_URL"; // Supabaseプロジェクトの URL
 const supabaseKey = "YOUR_SUPABASE_ANON_KEY"; // Supabaseプロジェクトの公開キー
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -28,8 +29,7 @@ async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo:
-        window.location.origin + "/14_画像ギャラリー作成ツール/index.html",
+      redirectTo: window.location.origin + "/PixelVault/index.html",
     },
   });
 
