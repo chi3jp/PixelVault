@@ -1,6 +1,5 @@
-// 設定ファイル - 実際の値を設定してください
-const CONFIG = {
-  SUPABASE_URL: "https://mmpiyvhqfcsgowpukvbl.supabase.co",
-  SUPABASE_ANON_KEY:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tcGl5dmhxZmNzZ293cHVrdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTQyNTgsImV4cCI6MjA2ODM5MDI1OH0.4KkKjRAMeHTdqgnsT857F-392DjebvfmDWyUSkY1Hck",
+// 設定ファイル - 環境変数から読み込み
+const CONFIG = window.CONFIG || {
+  SUPABASE_URL: "YOUR_SUPABASE_URL",
+  SUPABASE_ANON_KEY: "YOUR_SUPABASE_ANON_KEY",
 };

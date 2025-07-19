@@ -1,5 +1,6 @@
 # ローカル設定ファイル（機密情報を含む）
 config.local.js
+js/config-loader.js
 
 # Google API credentials
 client_secret_*.json
