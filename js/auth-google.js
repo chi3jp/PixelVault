@@ -166,3 +166,100 @@ document.addEventListener("DOMContentLoaded", function () {
     };
   }
 });
+
+// アカウント設定機能
+document.addEventListener("DOMContentLoaded", function () {
+  const accountSettingsModal = document.getElementById(
+    "account-settings-modal"
+  );
+  const saveAccountSettingsBtn = document.getElementById(
+    "save-account-settings-btn"
+  );
+
+  // アカウント設定モーダルが開かれた時
+  if (accountSettingsModal) {
+    accountSettingsModal.addEventListener("show.bs.modal", function () {
+      loadAccountSettings();
+    });
+  }
+
+  // アカウント設定保存ボタン
+  if (saveAccountSettingsBtn) {
+    saveAccountSettingsBtn.addEventListener("click", saveAccountSettings);
+  }
+
+  // アカウント設定を読み込み
+  function loadAccountSettings() {
+    const currentUser = window.authService
+      ? window.authService.getCurrentUser()
+      : null;
+    if (currentUser) {
+      document.getElementById("display-name").value =
+        currentUser.username || "";
+      document.getElementById("user-email").value = currentUser.email || "";
+    }
+  }
+
+  // アカウント設定を保存
+  async function saveAccountSettings() {
+    const displayName = document.getElementById("display-name").value.trim();
+    const successAlert = document.getElementById("settings-success");
+    const errorAlert = document.getElementById("settings-error");
+
+    // アラートをリセット
+    successAlert.classList.add("d-none");
+    errorAlert.classList.add("d-none");
+
+    if (!displayName) {
+      errorAlert.textContent = "表示名を入力してください";
+      errorAlert.classList.remove("d-none");
+      return;
+    }
+
+    try {
+      // ローカルストレージのユーザー情報を更新
+      const currentUser = window.authService
+        ? window.authService.getCurrentUser()
+        : null;
+      if (currentUser) {
+        const updatedUser = {
+          ...currentUser,
+          username: displayName,
+        };
+
+        localStorage.setItem("gallery_auth_user", JSON.stringify(updatedUser));
+
+        // UIを更新
+        const usernameDisplay = document.getElementById("username-display");
+        if (usernameDisplay) {
+          usernameDisplay.textContent = displayName;
+        }
+
+        // ギャラリー作者名も更新
+        const galleryAuthor = document.getElementById("gallery-author");
+        if (galleryAuthor) {
+          galleryAuthor.value = displayName;
+        }
+
+        // グローバルオブジェクトを更新
+        if (window.authService) {
+          window.authService.getCurrentUser = () => updatedUser;
+        }
+
+        successAlert.classList.remove("d-none");
+
+        // 2秒後にモーダルを閉じる
+        setTimeout(() => {
+          const modal = bootstrap.Modal.getInstance(accountSettingsModal);
+          if (modal) {
+            modal.hide();
+          }
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("アカウント設定保存エラー:", error);
+      errorAlert.textContent = "設定の保存に失敗しました";
+      errorAlert.classList.remove("d-none");
+    }
+  }
+});

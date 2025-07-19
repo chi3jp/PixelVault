@@ -42,8 +42,11 @@
               <a class="nav-link" href="#">ヘルプ</a>
             </li>
           </ul>
-          <div class="d-flex" id="auth-buttons">
-            <button class="btn btn-light me-2" id="google-login-btn">
+          <div class="d-flex flex-column flex-lg-row" id="auth-buttons">
+            <button
+              class="btn btn-light me-lg-2 mb-2 mb-lg-0"
+              id="google-login-btn"
+            >
               <i class="bi bi-google"></i> Googleでログイン
             </button>
             <button
@@ -75,7 +78,15 @@
                     >マイギャラリー</a
                   >
                 </li>
-                <li><a class="dropdown-item" href="#">アカウント設定</a></li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="#"
+                    data-bs-toggle="modal"
+                    data-bs-target="#account-settings-modal"
+                    >アカウント設定</a
+                  >
+                </li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
                   <a class="dropdown-item" href="#" id="logout-btn"
@@ -699,6 +710,77 @@
               id="go-to-signup-btn"
             >
               新規登録
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- アカウント設定モーダル -->
+    <div
+      class="modal fade"
+      id="account-settings-modal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">アカウント設定</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="閉じる"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="account-settings-form">
+              <div class="mb-3">
+                <label for="display-name" class="form-label">表示名</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="display-name"
+                  placeholder="表示名を入力"
+                />
+                <div class="form-text">
+                  ギャラリーの作者名として表示されます
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">メールアドレス</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="user-email"
+                  readonly
+                  disabled
+                />
+                <div class="form-text">メールアドレスは変更できません</div>
+              </div>
+              <div class="alert alert-success d-none" id="settings-success">
+                設定を保存しました
+              </div>
+              <div class="alert alert-danger d-none" id="settings-error">
+                設定の保存に失敗しました
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              キャンセル
+            </button>
+            <button
+              type="button"
+              id="save-account-settings-btn"
+              class="btn btn-primary"
+            >
+              保存
             </button>
           </div>
         </div>
