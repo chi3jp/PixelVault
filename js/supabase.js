@@ -1,7 +1,7 @@
 // Supabaseクライアントの初期化
-// ここにSupabaseダッシュボードからコピーしたURLとキーを貼り付けてください
-const supabaseUrl = "https://mmpiyvhqfcsgowpukvbl.supabase.co"; // Supabaseプロジェクトの URL
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tcGl5dmhxZmNzZ293cHVrdmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTQyNTgsImV4cCI6MjA2ODM5MDI1OH0.4KkKjRAMeHTdqgnsT857F-392DjebvfmDWyUSkY1Hck"; // Supabaseプロジェクトの公開キー
+// config.jsから設定を読み込み（セキュリティのため）
+const supabaseUrl = CONFIG.SUPABASE_URL;
+const supabaseKey = CONFIG.SUPABASE_ANON_KEY;
 const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // 認証状態の確認

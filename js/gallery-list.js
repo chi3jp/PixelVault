@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
           const {
             data: { publicUrl },
           } = supabase.storage
-            .from("gallery_images")
+            .from("gallery-images")
             .getPublicUrl(gallery.images[0].storage_path);
 
           previewImage = publicUrl;
