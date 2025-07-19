@@ -1,15 +1,13 @@
 {
-  "functions": {
-    "*.html": {
-      "headers": {
-        "cache-control": "s-maxage=0"
-      }
-    }
-  },
-  "rewrites": [
+  "headers": [
     {
-      "source": "/",
-      "destination": "/index.html"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "cache-control",
+          "value": "s-maxage=0"
+        }
+      ]
     }
   ]
 }
