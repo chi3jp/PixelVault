@@ -1,0 +1,15 @@
+{
+  "functions": {
+    "*.html": {
+      "headers": {
+        "cache-control": "s-maxage=0"
+      }
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    }
+  ]
+}

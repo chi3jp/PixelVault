@@ -1,5 +1,5 @@
-# 設定ファイル（機密情報を含む）
-config.js
+# ローカル設定ファイル（機密情報を含む）
+config.local.js
 
 # Google API credentials
 client_secret_*.json
