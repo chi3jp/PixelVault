@@ -29,8 +29,45 @@ document.addEventListener("DOMContentLoaded", function () {
   // ギャラリーデータ
   let myGalleries = [];
 
-  // 初期化
-  checkAuthAndLoadGalleries();
+  // 初期化（複数回チェックして確実に認証状態を確認）
+  function initializeWithRetry() {
+    let retryCount = 0;
+    const maxRetries = 5;
+
+    function tryInit() {
+      console.log(`初期化試行 ${retryCount + 1}/${maxRetries}`);
+
+      // 認証状態を即座に確認
+      const authToken = localStorage.getItem("gallery_auth_token");
+      const authUser = localStorage.getItem("gallery_auth_user");
+
+      if (authToken && authUser) {
+        console.log("認証情報発見、初期化実行");
+        checkAuthAndLoadGalleries();
+        return;
+      }
+
+      // authServiceが利用可能かチェック
+      if (window.authService && window.authService.isAuthenticated()) {
+        console.log("authService認証確認、初期化実行");
+        checkAuthAndLoadGalleries();
+        return;
+      }
+
+      retryCount++;
+      if (retryCount < maxRetries) {
+        console.log(`認証情報未確認、${200 * retryCount}ms後に再試行`);
+        setTimeout(tryInit, 200 * retryCount);
+      } else {
+        console.log("最大試行回数に達しました、未認証として処理");
+        checkAuthAndLoadGalleries();
+      }
+    }
+
+    tryInit();
+  }
+
+  initializeWithRetry();
 
   // イベントリスナー
   if (createGalleryBtn) {
@@ -58,17 +95,57 @@ document.addEventListener("DOMContentLoaded", function () {
    * 認証状態を確認してギャラリーを読み込み
    */
   async function checkAuthAndLoadGalleries() {
-    // 認証状態を確認
-    if (window.authService) {
-      isAuthenticated = window.authService.isAuthenticated();
-      currentUser = window.authService.getCurrentUser();
+    console.log("認証状態確認開始");
+
+    // ローカルストレージから直接認証状態を確認
+    const authToken = localStorage.getItem("gallery_auth_token");
+    const authUser = localStorage.getItem("gallery_auth_user");
+
+    console.log("ローカルストレージ確認:", {
+      hasToken: !!authToken,
+      hasUser: !!authUser,
+      token: authToken,
+      user: authUser,
+    });
+
+    // まずローカルストレージから確認
+    if (authToken && authUser) {
+      try {
+        currentUser = JSON.parse(authUser);
+        isAuthenticated = true;
+        console.log("ローカルストレージから認証済みユーザー:", currentUser);
+      } catch (e) {
+        console.error("認証情報の解析に失敗:", e);
+        isAuthenticated = false;
+        currentUser = null;
+      }
+    } else {
+      isAuthenticated = false;
+      currentUser = null;
     }
 
-    if (!isAuthenticated) {
+    // authServiceからも確認（上書きしない）
+    if (!isAuthenticated && window.authService) {
+      const serviceAuth = window.authService.isAuthenticated();
+      const serviceUser = window.authService.getCurrentUser();
+      console.log("authService確認:", { serviceAuth, serviceUser });
+
+      if (serviceAuth && serviceUser) {
+        isAuthenticated = true;
+        currentUser = serviceUser;
+        console.log("authServiceから認証済みユーザー:", currentUser);
+      }
+    }
+
+    console.log("最終認証状態:", { isAuthenticated, currentUser });
+
+    if (!isAuthenticated || !currentUser) {
+      console.log("認証されていないため、ログイン画面を表示");
       showAuthRequired();
       return;
     }
 
+    console.log("認証済み、ギャラリー読み込み開始");
     hideAuthRequired();
     await loadMyGalleries();
   }
@@ -77,6 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
    * 認証が必要な表示を表示
    */
   function showAuthRequired() {
+    console.log("認証が必要な画面を表示");
     if (authRequired) {
       authRequired.classList.remove("d-none");
     }
@@ -95,6 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
    * 認証が必要な表示を非表示
    */
   function hideAuthRequired() {
+    console.log("認証済み画面を表示");
     if (authRequired) {
       authRequired.classList.add("d-none");
     }

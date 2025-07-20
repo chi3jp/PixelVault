@@ -1198,23 +1198,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 現在のページにテーマを適用
   function applyThemeToCurrentPage() {
-    const body = document.body;
-
-    // 既存のテーマクラスを削除
-    body.classList.remove(
-      "theme-dark",
-      "theme-colorful",
-      "theme-minimal",
-      "theme-elegant",
-      "theme-nature",
-      "theme-neon",
-      "theme-vintage"
-    );
-
-    // 新しいテーマクラスを追加
-    if (gallerySettings.theme !== "light") {
-      body.classList.add(`theme-${gallerySettings.theme}`);
-    }
+    // 作成画面（index.html）ではテーマを適用しない
+    // テーマはギャラリー表示時のみ適用
+    console.log("テーマ適用はギャラリー表示時のみ行われます");
   }
 
   // 初期データ読み込み（少し遅延させて認証状態が確定してから実行）

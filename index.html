@@ -33,7 +33,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <a class="nav-link active" href="index.html">ホーム</a>
+              <a class="nav-link active" href="index.html">ギャラリー作成</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="my-galleries.html">マイギャラリー</a>
@@ -45,19 +45,9 @@
               <a class="nav-link" href="#">ヘルプ</a>
             </li>
           </ul>
-          <div class="d-flex flex-column flex-lg-row" id="auth-buttons">
-            <button
-              class="btn btn-light me-lg-2 mb-2 mb-lg-0"
-              id="google-login-btn"
-            >
+          <div class="d-flex" id="auth-buttons">
+            <button class="btn btn-light" id="google-login-btn">
               <i class="bi bi-google"></i> Googleでログイン
-            </button>
-            <button
-              class="btn btn-outline-light"
-              data-bs-toggle="modal"
-              data-bs-target="#login-modal"
-            >
-              メールでログイン
             </button>
           </div>
           <div class="d-flex d-none" id="user-menu">
@@ -496,181 +486,6 @@
             >
               閉じる
             </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ログインモーダル -->
-    <div class="modal fade" id="login-modal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">ログイン</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="閉じる"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form id="login-form">
-              <div class="mb-3">
-                <label for="login-email" class="form-label"
-                  >メールアドレス</label
-                >
-                <input
-                  type="email"
-                  class="form-control"
-                  id="login-email"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="login-password" class="form-label"
-                  >パスワード</label
-                >
-                <input
-                  type="password"
-                  class="form-control"
-                  id="login-password"
-                  required
-                />
-              </div>
-              <div class="mb-3 form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="remember-me"
-                />
-                <label class="form-check-label" for="remember-me"
-                  >ログイン状態を保持する</label
-                >
-              </div>
-              <div class="alert alert-danger d-none" id="login-error">
-                ログインに失敗しました。メールアドレスとパスワードを確認してください。
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              キャンセル
-            </button>
-            <button type="button" id="login-submit-btn" class="btn btn-primary">
-              ログイン
-            </button>
-          </div>
-          <div class="modal-footer justify-content-center">
-            <p class="mb-0">
-              アカウントをお持ちでない方は <a href="#" id="show-signup">登録</a>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 登録モーダル -->
-    <div class="modal fade" id="signup-modal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">アカウント登録</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="閉じる"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form id="signup-form">
-              <div class="mb-3">
-                <label for="signup-username" class="form-label"
-                  >ユーザー名</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="signup-username"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="signup-email" class="form-label"
-                  >メールアドレス</label
-                >
-                <input
-                  type="email"
-                  class="form-control"
-                  id="signup-email"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="signup-password" class="form-label"
-                  >パスワード</label
-                >
-                <input
-                  type="password"
-                  class="form-control"
-                  id="signup-password"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="signup-confirm" class="form-label"
-                  >パスワード (確認)</label
-                >
-                <input
-                  type="password"
-                  class="form-control"
-                  id="signup-confirm"
-                  required
-                />
-              </div>
-              <div class="mb-3 form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="terms"
-                  required
-                />
-                <label class="form-check-label" for="terms">
-                  <a href="#">利用規約</a>と<a href="#">プライバシーポリシー</a
-                  >に同意します
-                </label>
-              </div>
-              <div class="alert alert-danger d-none" id="signup-error">
-                登録に失敗しました。入力内容を確認してください。
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              キャンセル
-            </button>
-            <button
-              type="button"
-              id="signup-submit-btn"
-              class="btn btn-primary"
-            >
-              登録
-            </button>
-          </div>
-          <div class="modal-footer justify-content-center">
-            <p class="mb-0">
-              すでにアカウントをお持ちの方は
-              <a href="#" id="show-login">ログイン</a>
-            </p>
           </div>
         </div>
       </div>

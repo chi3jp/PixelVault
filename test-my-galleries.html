@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイギャラリーテスト - PixelVault</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1>マイギャラリー認証テスト</h1>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5>認証状態</h5>
+            </div>
+            <div class="card-body">
+              <div id="auth-status">確認中...</div>
+              <hr />
+              <button class="btn btn-primary" onclick="testLogin()">
+                テストログイン
+              </button>
+              <button class="btn btn-secondary" onclick="checkAuth()">
+                認証確認
+              </button>
+              <button class="btn btn-danger" onclick="logout()">
+                ログアウト
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5>ページ遷移テスト</h5>
+            </div>
+            <div class="card-body">
+              <a href="my-galleries.html" class="btn btn-success"
+                >マイギャラリーに移動</a
+              >
+              <a href="index.html" class="btn btn-info">メインページに移動</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>ログ</h5>
+            </div>
+            <div class="card-body">
+              <div
+                id="log-output"
+                style="
+                  height: 300px;
+                  overflow-y: auto;
+                  background: #f8f9fa;
+                  padding: 10px;
+                  font-family: monospace;
+                "
+              ></div>
+              <button class="btn btn-secondary mt-2" onclick="clearLog()">
+                ログクリア
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="config.local.js"></script>
+
+    <script>
+      // ログ出力機能
+      const logOutput = document.getElementById("log-output");
+
+      function log(message, type = "info") {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement("div");
+        logEntry.className = type === "error" ? "text-danger" : "text-dark";
+        logEntry.textContent = `[${timestamp}] ${message}`;
+        logOutput.appendChild(logEntry);
+        logOutput.scrollTop = logOutput.scrollHeight;
+        console.log(message);
+      }
+
+      function clearLog() {
+        logOutput.innerHTML = "";
+      }
+
+      // 認証状態を確認
+      function checkAuth() {
+        const authToken = localStorage.getItem("gallery_auth_token");
+        const authUser = localStorage.getItem("gallery_auth_user");
+        const authStatus = document.getElementById("auth-status");
+
+        log("認証状態確認開始");
+        log(`Token: ${authToken ? "存在" : "なし"}`);
+        log(`User: ${authUser ? "存在" : "なし"}`);
+
+        if (authToken && authUser) {
+          try {
+            const user = JSON.parse(authUser);
+            authStatus.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>認証済み</strong><br>
+                            ユーザー名: ${user.username}<br>
+                            メール: ${user.email}<br>
+                            ID: ${user.id}
+                        </div>
+                    `;
+            log(`認証済み: ${user.username} (${user.id})`);
+          } catch (e) {
+            authStatus.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>エラー</strong><br>
+                            認証データが破損しています
+                        </div>
+                    `;
+            log(`認証データ解析エラー: ${e.message}`, "error");
+          }
+        } else {
+          authStatus.innerHTML = `
+                    <div class="alert alert-warning">
+                        <strong>未認証</strong><br>
+                        ログインが必要です
+                    </div>
+                `;
+          log("未認証状態");
+        }
+
+        // authServiceの確認
+        if (window.authService) {
+          const serviceAuth = window.authService.isAuthenticated();
+          const serviceUser = window.authService.getCurrentUser();
+          log(`authService: ${serviceAuth ? "認証済み" : "未認証"}`);
+          if (serviceUser) {
+            log(`authServiceユーザー: ${serviceUser.username}`);
+          }
+        } else {
+          log("authServiceが利用できません");
+        }
+      }
+
+      // テストログイン
+      function testLogin() {
+        const testUser = {
+          id: "test-user-galleries",
+          username: "ギャラリーテストユーザー",
+          email: "galleries-test@example.com",
+        };
+
+        localStorage.setItem("gallery_auth_token", testUser.id);
+        localStorage.setItem("gallery_auth_user", JSON.stringify(testUser));
+
+        log(`テストログイン実行: ${testUser.username}`);
+        checkAuth();
+      }
+
+      // ログアウト
+      function logout() {
+        localStorage.removeItem("gallery_auth_token");
+        localStorage.removeItem("gallery_auth_user");
+        log("ログアウト実行");
+        checkAuth();
+      }
+
+      // 初期化
+      document.addEventListener("DOMContentLoaded", function () {
+        log("テストページ読み込み完了");
+        checkAuth();
+      });
+    </script>
+  </body>
+</html>
