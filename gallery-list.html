@@ -139,51 +139,7 @@
 
       <div id="gallery-container" class="row">
         <!-- ギャラリーカードがここに表示されます -->
-        <div class="col-md-6 col-lg-4 mb-4">
-          <div class="card h-100">
-            <img
-              src="https://via.placeholder.com/300x200?text=Gallery+Preview"
-              class="card-img-top"
-              alt="Gallery Preview"
-            />
-            <div class="card-body">
-              <h5 class="card-title">美しい風景ギャラリー</h5>
-              <p class="card-text">
-                山や海の美しい風景写真のコレクションです。
-              </p>
-              <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">作者: 山田太郎</small>
-                <small class="text-muted">画像: 12枚</small>
-              </div>
-            </div>
-            <div class="card-footer">
-              <a href="#" class="btn btn-primary w-100">閲覧する</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4 mb-4">
-          <div class="card h-100">
-            <img
-              src="https://via.placeholder.com/300x200?text=Gallery+Preview"
-              class="card-img-top"
-              alt="Gallery Preview"
-            />
-            <div class="card-body">
-              <h5 class="card-title">SF世界のイメージ</h5>
-              <p class="card-text">
-                未来都市やサイバーパンクの世界観を表現した画像集です。
-              </p>
-              <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted">作者: 佐藤花子</small>
-                <small class="text-muted">画像: 8枚</small>
-              </div>
-            </div>
-            <div class="card-footer">
-              <a href="#" class="btn btn-primary w-100">閲覧する</a>
-            </div>
-          </div>
-        </div>
+        <!-- 実際のギャラリーがここに動的に表示されます -->
       </div>
 
       <div id="no-galleries" class="text-center py-5 d-none">
@@ -395,9 +351,13 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="config.js"></script>
+    <script src="config.local.js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/auth-google.js"></script>
+    <script src="js/auth-local.js"></script>
     <script src="js/gallery-list.js"></script>
   </body>
 </html>

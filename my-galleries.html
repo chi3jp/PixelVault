@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マイギャラリー - PixelVault</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="index.html">
+          <i class="bi bi-images"></i> PixelVault
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html">ホーム</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="my-galleries.html"
+                >マイギャラリー</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="gallery-list.html">公開ギャラリー</a>
+            </li>
+          </ul>
+          <div class="d-flex d-none" id="user-menu">
+            <div class="dropdown">
+              <button
+                class="btn btn-light dropdown-toggle"
+                type="button"
+                id="userDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="bi bi-person-circle"></i>
+                <span id="username-display">ユーザー</span>
+              </button>
+              <ul
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="userDropdown"
+              >
+                <li>
+                  <a class="dropdown-item" href="my-galleries.html"
+                    >マイギャラリー</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="#"
+                    data-bs-toggle="modal"
+                    data-bs-target="#account-settings-modal"
+                    >アカウント設定</a
+                  >
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item" href="#" id="logout-btn"
+                    >ログアウト</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>マイギャラリー</h1>
+        <button class="btn btn-primary" id="create-gallery-btn">
+          <i class="bi bi-plus-lg"></i> 新しいギャラリーを作成
+        </button>
+      </div>
+
+      <!-- 認証が必要な場合の表示 -->
+      <div id="auth-required" class="alert alert-info d-none">
+        <h4 class="alert-heading">ログインが必要です</h4>
+        <p>ギャラリーを作成・管理するにはログインしてください。</p>
+        <button class="btn btn-primary" id="login-prompt-btn">
+          <i class="bi bi-google"></i> Googleでログイン
+        </button>
+      </div>
+
+      <!-- ギャラリー一覧 -->
+      <div id="my-galleries-container" class="row">
+        <!-- ギャラリーカードがここに表示されます -->
+      </div>
+
+      <!-- ギャラリーがない場合 -->
+      <div id="no-galleries" class="text-center py-5 d-none">
+        <i class="bi bi-images" style="font-size: 3rem; color: #6c757d"></i>
+        <h3 class="mt-3 text-muted">ギャラリーがありません</h3>
+        <p class="text-muted">最初のギャラリーを作成しましょう！</p>
+        <button class="btn btn-primary" id="create-first-gallery-btn">
+          <i class="bi bi-plus-lg"></i> ギャラリーを作成
+        </button>
+      </div>
+    </div>
+
+    <!-- ギャラリー作成/編集モーダル -->
+    <div class="modal fade" id="gallery-modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="gallery-modal-title">
+              新しいギャラリー
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="閉じる"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="gallery-form">
+              <input type="hidden" id="gallery-id" />
+              <div class="mb-3">
+                <label for="gallery-title" class="form-label">タイトル</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="gallery-title"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="gallery-description" class="form-label">説明</label>
+                <textarea
+                  class="form-control"
+                  id="gallery-description"
+                  rows="3"
+                ></textarea>
+              </div>
+              <div class="mb-3">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="gallery-public"
+                  />
+                  <label class="form-check-label" for="gallery-public">
+                    ギャラリーを公開する
+                  </label>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              キャンセル
+            </button>
+            <button type="button" id="save-gallery-btn" class="btn btn-primary">
+              保存
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="text-center py-4 mt-4 text-muted">
+      <small>© 2025 PixelVault</small>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="config.local.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth-google.js"></script>
+    <script src="js/auth-local.js"></script>
+    <script src="js/my-galleries.js"></script>
+  </body>
+</html>

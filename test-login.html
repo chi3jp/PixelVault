@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ログインテスト - PixelVault</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1>ログイン機能テスト</h1>
+
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h5>ログインボタン</h5>
+            </div>
+            <div class="card-body">
+              <button class="btn btn-primary" id="google-login-btn">
+                <i class="bi bi-google"></i> Googleでログイン
+              </button>
+
+              <hr />
+
+              <div id="auth-status" class="alert alert-info">
+                認証状態: 確認中...
+              </div>
+
+              <div id="user-info" class="d-none">
+                <h6>ログイン済み</h6>
+                <p>ユーザー名: <span id="user-name"></span></p>
+                <p>メール: <span id="user-email"></span></p>
+                <button class="btn btn-danger" id="logout-btn">
+                  ログアウト
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h5>設定情報</h5>
+            </div>
+            <div class="card-body">
+              <div id="config-info">読み込み中...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>ログ</h5>
+            </div>
+            <div class="card-body">
+              <div
+                id="log-output"
+                style="
+                  height: 200px;
+                  overflow-y: auto;
+                  background: #f8f9fa;
+                  padding: 10px;
+                  font-family: monospace;
+                "
+              ></div>
+              <button class="btn btn-secondary mt-2" onclick="clearLog()">
+                ログクリア
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="config.js"></script>
+    <script src="config.local.js"></script>
+
+    <script>
+      // ログ出力機能
+      const logOutput = document.getElementById("log-output");
+
+      function log(message, type = "info") {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement("div");
+        logEntry.className = type === "error" ? "text-danger" : "text-dark";
+        logEntry.textContent = `[${timestamp}] ${message}`;
+        logOutput.appendChild(logEntry);
+        logOutput.scrollTop = logOutput.scrollHeight;
+        console.log(message);
+      }
+
+      function clearLog() {
+        logOutput.innerHTML = "";
+      }
+
+      // 設定情報を表示
+      function showConfigInfo() {
+        const configInfo = document.getElementById("config-info");
+        configInfo.innerHTML = `
+                <p><strong>CONFIG存在:</strong> ${
+                  typeof CONFIG !== "undefined" ? "はい" : "いいえ"
+                }</p>
+                <p><strong>IS_LOCAL_DEV:</strong> ${
+                  CONFIG?.IS_LOCAL_DEV || "なし"
+                }</p>
+                <p><strong>SUPABASE_URL:</strong> ${
+                  CONFIG?.SUPABASE_URL ? "設定済み" : "なし"
+                }</p>
+            `;
+      }
+
+      // 認証状態を確認
+      function checkAuthStatus() {
+        const authToken = localStorage.getItem("gallery_auth_token");
+        const authUser = localStorage.getItem("gallery_auth_user");
+        const authStatus = document.getElementById("auth-status");
+        const userInfo = document.getElementById("user-info");
+
+        if (authToken && authUser) {
+          try {
+            const user = JSON.parse(authUser);
+            authStatus.className = "alert alert-success";
+            authStatus.textContent = "認証状態: ログイン済み";
+
+            document.getElementById("user-name").textContent = user.username;
+            document.getElementById("user-email").textContent = user.email;
+            userInfo.classList.remove("d-none");
+
+            log(`ログイン済み: ${user.username}`);
+          } catch (e) {
+            authStatus.className = "alert alert-danger";
+            authStatus.textContent = "認証状態: エラー（データ破損）";
+            log(`認証データ解析エラー: ${e.message}`, "error");
+          }
+        } else {
+          authStatus.className = "alert alert-warning";
+          authStatus.textContent = "認証状態: 未ログイン";
+          userInfo.classList.add("d-none");
+          log("未ログイン状態");
+        }
+      }
+
+      // テストログイン機能
+      function testLogin(userId) {
+        const testUsers = {
+          user1: {
+            id: "test-user-1",
+            username: "山田太郎",
+            email: "test1@example.com",
+          },
+          user2: {
+            id: "test-user-2",
+            username: "佐藤花子",
+            email: "test2@example.com",
+          },
+        };
+
+        const user = testUsers[userId];
+        if (!user) return;
+
+        localStorage.setItem("gallery_auth_token", user.id);
+        localStorage.setItem("gallery_auth_user", JSON.stringify(user));
+
+        log(`テストログイン実行: ${user.username}`);
+        checkAuthStatus();
+      }
+
+      // ログアウト機能
+      function logout() {
+        localStorage.removeItem("gallery_auth_token");
+        localStorage.removeItem("gallery_auth_user");
+        log("ログアウト実行");
+        checkAuthStatus();
+      }
+
+      // 初期化
+      document.addEventListener("DOMContentLoaded", function () {
+        log("ページ読み込み完了");
+        showConfigInfo();
+        checkAuthStatus();
+
+        // ログアウトボタン
+        document.getElementById("logout-btn").addEventListener("click", logout);
+
+        // Googleログインボタンの処理
+        const googleLoginBtn = document.getElementById("google-login-btn");
+        googleLoginBtn.addEventListener("click", function () {
+          log("Googleログインボタンクリック");
+
+          if (CONFIG && CONFIG.IS_LOCAL_DEV) {
+            log("ローカル開発環境を検出");
+            showTestLoginOptions();
+          } else {
+            log("本番環境またはローカル設定なし");
+            alert("ローカル開発環境が正しく設定されていません。");
+          }
+        });
+      });
+
+      // テストログインオプションを表示
+      function showTestLoginOptions() {
+        const modalHTML = `
+                <div class="modal fade" id="test-login-modal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">テストユーザーでログイン</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    ローカル開発環境用のテストログインです。
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary" onclick="testLogin('user1'); bootstrap.Modal.getInstance(document.getElementById('test-login-modal')).hide();">
+                                        山田太郎でログイン
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="testLogin('user2'); bootstrap.Modal.getInstance(document.getElementById('test-login-modal')).hide();">
+                                        佐藤花子でログイン
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        // 既存のモーダルを削除
+        const existingModal = document.getElementById("test-login-modal");
+        if (existingModal) {
+          existingModal.remove();
+        }
+
+        // 新しいモーダルを追加
+        document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+        // モーダルを表示
+        const modal = new bootstrap.Modal(
+          document.getElementById("test-login-modal")
+        );
+        modal.show();
+
+        log("テストログインモーダル表示");
+      }
+    </script>
+  </body>
+</html>

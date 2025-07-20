@@ -1,146 +1,487 @@
 /* 画像ギャラリー作成ツール用スタイル */
 
 body {
-    background-color: #f8f9fa;
-    color: #333;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+  font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 .card {
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border: none;
-    margin-bottom: 1.5rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border: none;
+  margin-bottom: 1.5rem;
 }
 
 .card-header {
-    background-color: #f1f3f5;
-    border-bottom: 1px solid #e9ecef;
+  background-color: #f1f3f5;
+  border-bottom: 1px solid #e9ecef;
 }
 
 /* 画像アイテムスタイル */
 .image-item {
-    transition: all 0.2s ease;
-    cursor: grab;
+  transition: all 0.2s ease;
+  cursor: grab;
 }
 
 .image-item:active {
-    cursor: grabbing;
+  cursor: grabbing;
 }
 
 .image-item:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .image-preview {
-    height: 180px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f8f9fa;
+  height: 180px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
 }
 
 .image-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .card-title {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-text {
-    max-height: 40px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+  max-height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* ドラッグ中のスタイル */
 .sortable-ghost {
-    opacity: 0.5;
-    background-color: #e9ecef;
+  opacity: 0.5;
+  background-color: #e9ecef;
 }
 
 .sortable-chosen {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* 画像プレビュー */
 #image-preview-container {
-    max-height: 300px;
-    overflow: hidden;
-    border-radius: 4px;
-    border: 1px solid #dee2e6;
+  max-height: 300px;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
 }
 
 #image-preview {
-    max-height: 300px;
-    object-fit: contain;
+  max-height: 300px;
+  object-fit: contain;
 }
 
 /* フォーム要素 */
 .form-label {
-    font-weight: 500;
+  font-weight: 500;
 }
 
 /* アニメーション */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .fade-in {
-    animation: fadeIn 0.3s ease-in;
+  animation: fadeIn 0.3s ease-in;
 }
 
 /* プレビューフレーム */
 #preview-frame {
-    background-color: white;
+  background-color: white;
 }
 
 /* レスポンシブ調整 */
 @media (max-width: 768px) {
-    .container {
-        padding: 0 15px;
-    }
-    
-    .image-preview {
-        height: 150px;
-    }
+  .container {
+    padding: 0 15px;
+  }
+
+  .image-preview {
+    height: 150px;
+  }
 }
 
 /* カラーテーマプレビュー */
 .theme-preview {
-    width: 20px;
-    height: 20px;
-    display: inline-block;
-    margin-right: 5px;
-    border-radius: 50%;
-    vertical-align: middle;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  margin-right: 5px;
+  border-radius: 50%;
+  vertical-align: middle;
 }
 
 .theme-light {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 1px solid #dee2e6;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid #dee2e6;
 }
 
 .theme-dark {
-    background: linear-gradient(135deg, #343a40 0%, #212529 100%);
+  background: linear-gradient(135deg, #343a40 0%, #212529 100%);
 }
 
 .theme-colorful {
-    background: linear-gradient(135deg, #ff7675 0%, #74b9ff 50%, #55efc4 100%);
+  background: linear-gradient(135deg, #ff7675 0%, #74b9ff 50%, #55efc4 100%);
 }
 
 .theme-minimal {
-    background: linear-gradient(135deg, #f1f3f5 0%, #e9ecef 100%);
-    border: 1px solid #dee2e6;
+  background: linear-gradient(135deg, #f1f3f5 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+}
+/* 
+ライトボックススタイル */
+.lightbox {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.lightbox-content {
+  max-width: 90%;
+  max-height: 90%;
+  position: relative;
+  text-align: center;
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.lightbox-caption {
+  color: white;
+  text-align: center;
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  z-index: 1001;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.lightbox-close:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.download-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.download-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ギャラリー表示用スタイル */
+.gallery-item {
+  transition: transform 0.2s ease;
+}
+
+.gallery-item:hover {
+  transform: translateY(-2px);
+}
+
+.gallery-image {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.gallery-image:hover {
+  opacity: 0.9;
+}
+
+.gallery-prompt {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.gallery-date {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+/* テーマスタイル */
+.theme-dark {
+  background-color: #212529;
+  color: #f8f9fa;
+}
+
+.theme-dark .card {
+  background-color: #343a40;
+  border-color: #495057;
+}
+
+.theme-dark .gallery-prompt,
+.theme-dark .gallery-date {
+  color: #adb5bd;
+}
+
+.theme-colorful {
+  background: linear-gradient(135deg, #ff7675 0%, #74b9ff 50%, #55efc4 100%);
+  background-attachment: fixed;
+}
+
+.theme-colorful .card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.theme-colorful #gallery-header {
+  background: linear-gradient(135deg, #ff7675 0%, #74b9ff 50%, #55efc4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding: 2rem 0;
+}
+
+.theme-minimal {
+  background-color: #f8f9fa;
+}
+
+.theme-minimal .card {
+  background-color: #ffffff;
+  border: none;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.theme-minimal .gallery-item {
+  border: 1px solid #e9ecef;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .lightbox-close {
+    top: 10px;
+    right: 10px;
+    font-size: 1.5rem;
+    width: 35px;
+    height: 35px;
+  }
+
+  .download-btn {
+    bottom: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+
+  .lightbox-caption {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* アニメーション */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gallery-item {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ローディングスピナー */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+/* 新しいテーマスタイル */
+.theme-elegant {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.theme-elegant .card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.theme-elegant #gallery-header {
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.theme-nature {
+  background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 50%, #ffd3a5 100%);
+  color: #2d5016;
+}
+
+.theme-nature .card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(45, 80, 22, 0.1);
+  box-shadow: 0 4px 16px rgba(45, 80, 22, 0.1);
+}
+
+.theme-nature .gallery-prompt,
+.theme-nature .gallery-date {
+  color: #5a7c3a;
+}
+
+.theme-neon {
+  background: #0a0a0a;
+  color: #00ff88;
+}
+
+.theme-neon .card {
+  background: #1a1a1a;
+  border: 1px solid #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.theme-neon #gallery-header {
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.theme-neon .gallery-prompt,
+.theme-neon .gallery-date {
+  color: #66ffaa;
+}
+
+.theme-vintage {
+  background: linear-gradient(135deg, #f4e2d7 0%, #ba9584 100%);
+  color: #5d4037;
+}
+
+.theme-vintage .card {
+  background: #faf0e6;
+  border: 1px solid #d7ccc8;
+  box-shadow: 0 4px 8px rgba(93, 64, 55, 0.2);
+  border-radius: 8px;
+}
+
+.theme-vintage #gallery-header {
+  color: #5d4037;
+  font-family: "Georgia", serif;
+}
+
+.theme-vintage .gallery-prompt,
+.theme-vintage .gallery-date {
+  color: #8d6e63;
+}
+
+/* レイアウト改善 */
+.layout-masonry .gallery-item {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+
+.layout-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.layout-carousel .gallery-item {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
+}
+
+/* アニメーション効果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gallery-item {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.gallery-item:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+
+.gallery-item:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+
+/* ホバー効果の強化 */
+.gallery-image {
+  transition: all 0.3s ease;
+}
+
+.gallery-image:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.theme-neon .gallery-image:hover {
+  box-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
+}
+
+.theme-elegant .gallery-image:hover {
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }

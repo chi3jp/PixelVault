@@ -19,13 +19,40 @@ document.addEventListener("DOMContentLoaded", function () {
   // 画像リスト要素
   const imageList = document.getElementById("image-list");
 
-  // 認証状態の確認
-  const isAuthenticated = window.authService
-    ? window.authService.isAuthenticated()
-    : false;
-  const currentUser = window.authService
-    ? window.authService.getCurrentUser()
-    : null;
+  // 認証状態の確認（初期化時とページ読み込み後に再確認）
+  let isAuthenticated = false;
+  let currentUser = null;
+
+  function updateAuthState() {
+    // ローカルストレージから認証情報を確認
+    const authToken = localStorage.getItem("gallery_auth_token");
+    const authUser = localStorage.getItem("gallery_auth_user");
+
+    if (authToken && authUser) {
+      try {
+        currentUser = JSON.parse(authUser);
+        isAuthenticated = true;
+      } catch (e) {
+        console.error("認証情報の解析に失敗:", e);
+        isAuthenticated = false;
+        currentUser = null;
+      }
+    } else {
+      isAuthenticated = false;
+      currentUser = null;
+    }
+
+    // authServiceも更新
+    if (window.authService) {
+      isAuthenticated = window.authService.isAuthenticated();
+      currentUser = window.authService.getCurrentUser();
+    }
+
+    console.log("認証状態:", { isAuthenticated, currentUser });
+  }
+
+  // 初期認証状態を確認
+  updateAuthState();
 
   // 画像データ
   let images = [];
@@ -65,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   // ローカルストレージからデータを読み込む
-  function loadData() {
+  async function loadData() {
     // ユーザーごとのデータ保存のためのキーを作成
     const userKey = currentUser ? `user_${currentUser.id}_` : "";
 
@@ -76,7 +103,57 @@ document.addEventListener("DOMContentLoaded", function () {
       `${userKey}midjourneyGallerySettings`
     );
 
-    if (storedImages) {
+    // 認証済みユーザーの場合、Supabaseからデータを読み込み
+    if (isAuthenticated && currentUser) {
+      try {
+        // Supabaseから画像データを取得
+        const { data: supabaseImages, error } = await supabase
+          .from("images")
+          .select("*")
+          .eq("user_id", currentUser.id)
+          .order("created_at", { ascending: false });
+
+        if (!error && supabaseImages && supabaseImages.length > 0) {
+          // Supabaseの画像データをローカル形式に変換
+          const convertedImages = supabaseImages.map((img, index) => {
+            // 公開URLを取得
+            const {
+              data: { publicUrl },
+            } = supabase.storage
+              .from("gallery-images")
+              .getPublicUrl(img.storage_path);
+
+            return {
+              id: index + 1,
+              supabaseId: img.id,
+              src: publicUrl,
+              title: img.title,
+              prompt: img.prompt || img.description,
+              date: img.created_at
+                ? img.created_at.split("T")[0]
+                : new Date().toISOString().split("T")[0],
+              tags: img.tags
+                ? img.tags
+                    .split(",")
+                    .map((tag) => tag.trim())
+                    .filter((tag) => tag)
+                : [],
+              storagePath: img.storage_path,
+            };
+          });
+
+          images = convertedImages;
+        } else if (storedImages) {
+          images = JSON.parse(storedImages);
+        }
+      } catch (error) {
+        console.error("Supabaseからのデータ読み込みエラー:", error);
+        // エラーの場合はローカルストレージから読み込み
+        if (storedImages) {
+          images = JSON.parse(storedImages);
+        }
+      }
+    } else if (storedImages) {
       images = JSON.parse(storedImages);
     } else if (!isAuthenticated) {
       // 未ログイン時はサンプル画像を表示
@@ -96,26 +173,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // データをローカルストレージに保存
   function saveData() {
+    // 認証状態を再確認
+    updateAuthState();
+
     // 未ログイン時は保存しない（サンプルモードとして動作）
     if (!isAuthenticated) {
-      if (window.authService) {
-        window.authService.showAuthRequiredModal();
-      }
+      console.log("未ログイン状態のため保存をスキップ");
       return false;
     }
 
-    // ユーザーごとのデータ保存のためのキーを作成
-    const userKey = `user_${currentUser.id}_`;
+    if (!currentUser || !currentUser.id) {
+      console.error("ユーザー情報が不正です:", currentUser);
+      return false;
+    }
 
-    localStorage.setItem(
-      `${userKey}midjourneyGalleryImages`,
-      JSON.stringify(images)
-    );
-    localStorage.setItem(
-      `${userKey}midjourneyGallerySettings`,
-      JSON.stringify(gallerySettings)
-    );
-    return true;
+    try {
+      // ユーザーごとのデータ保存のためのキーを作成
+      const userKey = `user_${currentUser.id}_`;
+
+      console.log("データ保存開始:", {
+        userKey,
+        imagesCount: images.length,
+        settings: gallerySettings,
+      });
+
+      localStorage.setItem(
+        `${userKey}midjourneyGalleryImages`,
+        JSON.stringify(images)
+      );
+      localStorage.setItem(
+        `${userKey}midjourneyGallerySettings`,
+        JSON.stringify(gallerySettings)
+      );
+
+      console.log("データ保存完了");
+      return true;
+    } catch (error) {
+      console.error("データ保存エラー:", error);
+      return false;
+    }
   }
 
   // 設定フォームを更新
@@ -188,9 +284,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // 公開設定が有効な場合、共有リンクを表示
       if (gallerySettings.isPublic && isAuthenticated) {
-        const shareUrl = `gallery.html?user=${currentUser.id}`;
+        const shareUrl = `gallery-list.html`;
         alert(
-          `ギャラリーを公開しました！\n共有リンク: ${window.location.origin}/${shareUrl}`
+          `ギャラリーを公開しました！\nギャラリー一覧ページで確認できます: ${window.location.origin}/${shareUrl}`
         );
       }
     }
@@ -200,9 +296,30 @@ document.addEventListener("DOMContentLoaded", function () {
   function renderImageList() {
     imageList.innerHTML = "";
 
+    // レイアウトに応じてクラスを設定
+    const getColumnClass = () => {
+      switch (gallerySettings.layout) {
+        case "masonry":
+          return "col-md-6 col-lg-4 mb-3";
+        case "carousel":
+          return "col-12 mb-3";
+        default: // grid
+          return "col-md-6 col-lg-4 mb-3";
+      }
+    };
+
+    // レイアウトに応じてコンテナのクラスを設定
+    if (gallerySettings.layout === "carousel") {
+      imageList.className = "layout-carousel";
+    } else if (gallerySettings.layout === "masonry") {
+      imageList.className = "row layout-masonry";
+    } else {
+      imageList.className = "row";
+    }
+
     images.forEach((image) => {
       const imageCol = document.createElement("div");
-      imageCol.className = "col-md-6 col-lg-4 mb-3";
+      imageCol.className = getColumnClass();
       imageCol.dataset.id = image.id;
 
       const imageCard = document.createElement("div");
@@ -288,6 +405,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 画像追加モーダルを表示
   function showAddImageModal() {
+    // 認証状態を再確認
+    updateAuthState();
+
+    if (!isAuthenticated) {
+      alert("画像を追加するにはログインが必要です。");
+      return;
+    }
+
     document.getElementById("image-modal-title").textContent = "画像追加";
     document.getElementById("image-form").reset();
     document.getElementById("image-id").value = "";
@@ -323,6 +448,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 画像を保存
   async function saveImage() {
+    // 認証状態を再確認
+    updateAuthState();
+
     const id = document.getElementById("image-id").value;
     const title = document.getElementById("image-title").value.trim();
     const prompt = document.getElementById("image-prompt").value.trim();
@@ -345,52 +473,131 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 認証チェック
     if (!isAuthenticated) {
-      if (window.authService) {
-        window.authService.showAuthRequiredModal();
-      }
+      alert("画像を保存するにはログインが必要です。");
       return;
     }
+
+    console.log("画像保存開始:", {
+      title,
+      prompt,
+      date,
+      tags,
+      hasFile: !!imageFile,
+    });
 
     try {
       if (id) {
         // 既存画像の更新
         const index = images.findIndex((img) => img.id === parseInt(id));
         if (index !== -1) {
-          // 画像ファイルがある場合のみ更新
-          if (imageFile) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
+          // Supabaseに保存されている画像の場合
+          if (images[index].supabaseId) {
+            // Supabaseの画像情報を更新
+            const { error } = await supabase
+              .from("images")
+              .update({
+                title,
+                description: prompt,
+                prompt,
+                tags: tags.join(","),
+                created_at: date,
+              })
+              .eq("id", images[index].supabaseId);
+
+            if (error) {
+              console.error("Supabase更新エラー:", error);
+              throw error;
+            }
+
+            // 新しい画像ファイルがある場合はStorageも更新
+            if (imageFile) {
+              // 既存ファイルを削除
+              if (images[index].storagePath) {
+                await supabase.storage
+                  .from("gallery-images")
+                  .remove([images[index].storagePath]);
+              }
+
+              // 新しいファイルをアップロード
+              const fileExt = imageFile.name.split(".").pop();
+              const fileName = `${Math.random()
+                .toString(36)
+                .substring(2, 15)}_${Date.now()}.${fileExt}`;
+              const filePath = `${currentUser.id}/temp/${fileName}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from("gallery-images")
+                .upload(filePath, imageFile);
+
+              if (uploadError) {
+                console.error("画像アップロードエラー:", uploadError);
+                throw uploadError;
+              }
+
+              // 公開URLを取得
+              const {
+                data: { publicUrl },
+              } = supabase.storage
+                .from("gallery-images")
+                .getPublicUrl(filePath);
+
+              // ローカルの画像情報を更新
               images[index] = {
                 ...images[index],
-                src: e.target.result,
+                src: publicUrl,
+                title,
+                prompt,
+                date,
+                tags,
+                storagePath: filePath,
+              };
+            } else {
+              // 画像ファイルがない場合はその他の情報のみ更新
+              images[index] = {
+                ...images[index],
                 title,
                 prompt,
                 date,
                 tags,
               };
-
-              if (saveData()) {
-                renderImageList();
-                imageModal.hide();
-                showSuccessMessage("画像を更新しました");
-              }
-            };
-            reader.readAsDataURL(imageFile);
-          } else {
-            // 画像ファイルがない場合はその他の情報のみ更新
-            images[index] = {
-              ...images[index],
-              title,
-              prompt,
-              date,
-              tags,
-            };
-
-            if (saveData()) {
-              renderImageList();
-              imageModal.hide();
-              showSuccessMessage("画像情報を更新しました");
             }
+          } else {
+            // ローカルストレージのみの画像の場合
+            if (imageFile) {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                images[index] = {
+                  ...images[index],
+                  src: e.target.result,
+                  title,
+                  prompt,
+                  date,
+                  tags,
+                };
+
+                if (saveData()) {
+                  renderImageList();
+                  imageModal.hide();
+                  showSuccessMessage("画像を更新しました");
+                }
+              };
+              reader.readAsDataURL(imageFile);
+              return;
+            } else {
+              images[index] = {
+                ...images[index],
+                title,
+                prompt,
+                date,
+                tags,
+              };
+            }
+          }
+
+          if (saveData()) {
+            renderImageList();
+            imageModal.hide();
+            showSuccessMessage("画像を更新しました");
           }
         }
       } else {
@@ -400,29 +607,54 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
+        console.log("新規画像追加処理開始");
+
+        // ローカル開発環境では画像をBase64で保存
         const reader = new FileReader();
         reader.onload = function (e) {
+          console.log("画像読み込み完了");
+
           const newId =
             images.length > 0
               ? Math.max(...images.map((img) => img.id)) + 1
               : 1;
 
-          images.push({
+          const newImage = {
             id: newId,
             src: e.target.result,
             title,
             prompt,
             date,
             tags,
-          });
+          };
+
+          console.log("新しい画像オブジェクト:", newImage);
+
+          images.push(newImage);
 
           if (saveData()) {
             renderImageList();
             imageModal.hide();
             showSuccessMessage("画像を追加しました");
+            console.log("画像追加完了");
+          } else {
+            console.error("データ保存に失敗");
+            alert("データの保存に失敗しました。");
           }
         };
+
+        reader.onerror = function (error) {
+          console.error("画像読み込みエラー:", error);
+          alert("画像の読み込みに失敗しました。");
+        };
+
         reader.readAsDataURL(imageFile);
+
+        if (saveData()) {
+          renderImageList();
+          imageModal.hide();
+          showSuccessMessage("画像を追加しました");
+        }
       }
     } catch (error) {
       console.error("画像保存エラー:", error);
@@ -452,16 +684,50 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // 画像を削除
-  function removeImage(id) {
+  async function removeImage(id) {
     if (!confirm("この画像を削除してもよろしいですか？")) {
       return;
     }
 
     const index = images.findIndex((img) => img.id === id);
     if (index !== -1) {
-      images.splice(index, 1);
-      saveData();
-      renderImageList();
+      const image = images[index];
+
+      try {
+        // Supabaseに保存されている画像の場合
+        if (image.supabaseId) {
+          // ストレージから画像を削除
+          if (image.storagePath) {
+            const { error: storageError } = await supabase.storage
+              .from("gallery-images")
+              .remove([image.storagePath]);
+
+            if (storageError) {
+              console.error("ストレージ削除エラー:", storageError);
+            }
+          }
+
+          // データベースから画像情報を削除
+          const { error: dbError } = await supabase
+            .from("images")
+            .delete()
+            .eq("id", image.supabaseId);
+
+          if (dbError) {
+            console.error("データベース削除エラー:", dbError);
+            throw dbError;
+          }
+        }
+
+        // ローカル配列から削除
+        images.splice(index, 1);
+        saveData();
+        renderImageList();
+        showSuccessMessage("画像を削除しました");
+      } catch (error) {
+        console.error("画像削除エラー:", error);
+        alert("画像の削除に失敗しました。もう一度お試しください。");
+      }
     }
   }
 
@@ -837,6 +1103,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ギャラリープレビュー
   function previewGallery() {
+    // 現在の設定を取得
+    gallerySettings.title = document.getElementById("gallery-title").value;
+    gallerySettings.description = document.getElementById(
+      "gallery-description"
+    ).value;
+    gallerySettings.author = document.getElementById("gallery-author").value;
+    gallerySettings.layout = document.querySelector(
+      'input[name="layout"]:checked'
+    ).value;
+    gallerySettings.theme = document.getElementById("color-theme").value;
+    gallerySettings.showPrompt = document.getElementById("show-prompt").checked;
+    gallerySettings.showDate = document.getElementById("show-date").checked;
+    gallerySettings.enableLightbox =
+      document.getElementById("enable-lightbox").checked;
+    gallerySettings.enableDownload =
+      document.getElementById("enable-download").checked;
+
     const html = generateGalleryHTML();
     const previewFrame = document.getElementById("preview-frame");
 
@@ -890,6 +1173,22 @@ document.addEventListener("DOMContentLoaded", function () {
       reader.readAsDataURL(file);
     });
 
+  // レイアウト変更の即座反映
+  document.querySelectorAll('input[name="layout"]').forEach((radio) => {
+    radio.addEventListener("change", function () {
+      gallerySettings.layout = this.value;
+      renderImageList();
+    });
+  });
+
+  // テーマ変更の即座反映
+  document
+    .getElementById("color-theme")
+    .addEventListener("change", function () {
+      gallerySettings.theme = this.value;
+      applyThemeToCurrentPage();
+    });
+
   // イベントリスナーの設定
   addImageBtn.addEventListener("click", showAddImageModal);
   saveImageBtn.addEventListener("click", saveImage);
@@ -897,12 +1196,42 @@ document.addEventListener("DOMContentLoaded", function () {
   previewBtn.addEventListener("click", previewGallery);
   exportBtn.addEventListener("click", exportGallery);
 
-  // 初期データ読み込み
-  loadData();
+  // 現在のページにテーマを適用
+  function applyThemeToCurrentPage() {
+    const body = document.body;
+
+    // 既存のテーマクラスを削除
+    body.classList.remove(
+      "theme-dark",
+      "theme-colorful",
+      "theme-minimal",
+      "theme-elegant",
+      "theme-nature",
+      "theme-neon",
+      "theme-vintage"
+    );
+
+    // 新しいテーマクラスを追加
+    if (gallerySettings.theme !== "light") {
+      body.classList.add(`theme-${gallerySettings.theme}`);
+    }
+  }
+
+  // 初期データ読み込み（少し遅延させて認証状態が確定してから実行）
+  setTimeout(() => {
+    updateAuthState();
+    loadData();
+  }, 100);
 });
 
 // ギャラリー設定を適用
-function applySettings() {
+async function applySettings() {
+  // 未ログイン時は認証モーダルを表示
+  if (!isAuthenticated && window.authService) {
+    window.authService.showAuthRequiredModal();
+    return;
+  }
+
   // フォームから値を取得
   gallerySettings.title =
     document.getElementById("gallery-title").value.trim() ||
@@ -925,9 +1254,72 @@ function applySettings() {
     document.getElementById("enable-download").checked;
   gallerySettings.isPublic = document.getElementById("gallery-public").checked;
 
-  // データを保存
-  if (saveData()) {
-    showSuccessMessage("設定を保存しました");
+  try {
+    // Supabaseにギャラリー設定を保存
+    if (isAuthenticated && currentUser) {
+      // 既存のギャラリーを検索
+      const { data: existingGalleries, error: searchError } = await supabase
+        .from("galleries")
+        .select("id")
+        .eq("user_id", currentUser.id)
+        .eq("title", gallerySettings.title);
+
+      if (searchError) {
+        console.error("ギャラリー検索エラー:", searchError);
+      }
+
+      if (existingGalleries && existingGalleries.length > 0) {
+        // 既存ギャラリーを更新
+        const { error: updateError } = await supabase
+          .from("galleries")
+          .update({
+            title: gallerySettings.title,
+            description: gallerySettings.description,
+            author_name: gallerySettings.author,
+            is_public: gallerySettings.isPublic,
+            settings: JSON.stringify(gallerySettings),
+          })
+          .eq("id", existingGalleries[0].id);
+
+        if (updateError) {
+          console.error("ギャラリー更新エラー:", updateError);
+        }
+      } else {
+        // 新規ギャラリーを作成
+        const { error: insertError } = await supabase.from("galleries").insert([
+          {
+            title: gallerySettings.title,
+            description: gallerySettings.description,
+            author_name: gallerySettings.author,
+            user_id: currentUser.id,
+            is_public: gallerySettings.isPublic,
+            settings: JSON.stringify(gallerySettings),
+          },
+        ]);
+
+        if (insertError) {
+          console.error("ギャラリー作成エラー:", insertError);
+        }
+      }
+    }
+
+    // データを保存
+    if (saveData()) {
+      showSuccessMessage("設定を保存しました");
+
+      // 公開設定が有効な場合、共有リンクを表示
+      if (gallerySettings.isPublic && isAuthenticated) {
+        const shareUrl = `gallery-view.html?user=${currentUser.id}`;
+        setTimeout(() => {
+          alert(
+            `ギャラリーを公開しました！\n共有リンク: ${window.location.origin}/${shareUrl}`
+          );
+        }, 1000);
+      }
+    }
+  } catch (error) {
+    console.error("設定保存エラー:", error);
+    showSuccessMessage("設定を保存しました（ローカル保存）");
   }
 }
 

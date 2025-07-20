@@ -58,46 +58,104 @@ document.addEventListener("DOMContentLoaded", function () {
    */
   async function loadPublicGalleries() {
     try {
-      // Supabaseからギャラリーを取得
-      const { data: galleries, error } = await supabase
-        .from("galleries")
-        .select("*, images(*)")
-        .eq("is_public", true)
-        .order("created_at", { ascending: false });
+      // まず、ローカルストレージから公開ギャラリーを取得
+      const allGalleries = [];
 
-      if (error) {
-        console.error("ギャラリーの取得に失敗しました:", error);
-        throw error;
+      // ローカルストレージのキーを取得
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+
+        // ギャラリー設定のキーを検索
+        if (key.includes("midjourneyGallerySettings")) {
+          try {
+            const settings = JSON.parse(localStorage.getItem(key));
+            const userId = key.split("user_")[1]?.split("_")[0];
+
+            // 公開設定が有効なギャラリーのみ追加
+            if (settings.isPublic) {
+              // 画像データを取得
+              const imagesKey = key.replace("Settings", "Images");
+              const images = JSON.parse(
+                localStorage.getItem(imagesKey) || "[]"
+              );
+
+              allGalleries.push({
+                id: userId || "anonymous",
+                settings: settings,
+                imageCount: images.length,
+                previewImage:
+                  images.length > 0
+                    ? images[0].src
+                    : "https://via.placeholder.com/300x200?text=No+Images",
+              });
+            }
+          } catch (e) {
+            console.error("ギャラリーデータの解析に失敗しました", e);
+          }
+        }
       }
 
-      // ギャラリーデータを整形
-      const formattedGalleries = galleries.map((gallery) => {
-        // 画像のURLを取得
-        let previewImage = "https://via.placeholder.com/300x200?text=No+Images";
-        if (gallery.images && gallery.images.length > 0) {
-          const {
-            data: { publicUrl },
-          } = supabase.storage
-            .from("gallery-images")
-            .getPublicUrl(gallery.images[0].storage_path);
+      // Supabaseからも公開ギャラリーを取得（将来の拡張用）
+      try {
+        // 現在のテーブル構造に合わせて、imagesテーブルから公開ギャラリーを取得
+        const { data: images, error } = await supabase
+          .from("images")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-          previewImage = publicUrl;
+        if (!error && images && images.length > 0) {
+          // ユーザーごとにグループ化
+          const userGalleries = {};
+
+          images.forEach((image) => {
+            if (!userGalleries[image.user_id]) {
+              userGalleries[image.user_id] = {
+                id: image.user_id,
+                settings: {
+                  title: `${image.user_id}のギャラリー`,
+                  description: "Supabaseに保存された画像コレクション",
+                  author: "ユーザー",
+                  isPublic: true,
+                },
+                images: [],
+                imageCount: 0,
+                previewImage:
+                  "https://via.placeholder.com/300x200?text=No+Images",
+              };
+            }
+
+            // 公開URLを取得
+            const {
+              data: { publicUrl },
+            } = supabase.storage
+              .from("gallery-images")
+              .getPublicUrl(image.storage_path);
+
+            userGalleries[image.user_id].images.push({
+              ...image,
+              url: publicUrl,
+            });
+            userGalleries[image.user_id].imageCount++;
+
+            // 最初の画像をプレビューに設定
+            if (userGalleries[image.user_id].imageCount === 1) {
+              userGalleries[image.user_id].previewImage = publicUrl;
+            }
+          });
+
+          // Supabaseのギャラリーを追加
+          Object.values(userGalleries).forEach((gallery) => {
+            allGalleries.push(gallery);
+          });
         }
+      } catch (supabaseError) {
+        console.log(
+          "Supabaseからのデータ取得をスキップ:",
+          supabaseError.message
+        );
+      }
 
-        return {
-          id: gallery.id,
-          settings: {
-            title: gallery.title,
-            description: gallery.description || "",
-            author: gallery.author_name || "匿名",
-            isPublic: gallery.is_public,
-          },
-          imageCount: gallery.images ? gallery.images.length : 0,
-          previewImage: previewImage,
-        };
-      });
-
-      publicGalleries = formattedGalleries;
+      publicGalleries = allGalleries;
     } catch (error) {
       console.error("ギャラリーの読み込みに失敗しました:", error);
 
@@ -141,6 +199,36 @@ document.addEventListener("DOMContentLoaded", function () {
       publicGalleries = allGalleries;
     }
 
+    // サンプルギャラリーを追加
+    const sampleGalleries = [
+      {
+        id: "sample_1",
+        userId: null,
+        settings: {
+          title: "美しい風景ギャラリー",
+          description: "山や海の美しい風景写真のコレクションです。",
+          author: "山田太郎",
+          isPublic: true,
+        },
+        imageCount: 2,
+        previewImage:
+          "https://via.placeholder.com/300x200?text=Mountain+Sunset",
+      },
+      {
+        id: "sample_2",
+        userId: null,
+        settings: {
+          title: "SF世界のイメージ",
+          description: "未来都市やサイバーパンクの世界観を表現した画像集です。",
+          author: "佐藤花子",
+          isPublic: true,
+        },
+        imageCount: 2,
+        previewImage: "https://via.placeholder.com/300x200?text=Cyberpunk+City",
+      },
+    ];
+
+    publicGalleries = [...publicGalleries, ...sampleGalleries];
     renderGalleries(publicGalleries);
   }
 
@@ -216,8 +304,12 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
                         </div>
                         <div class="card-footer">
-                            <a href="gallery-view.html?id=${
-                              gallery.id
+                            <a href="gallery-view.html?${
+                              gallery.id.startsWith("sample_")
+                                ? `sample=${gallery.id.split("_")[1]}`
+                                : gallery.userId
+                                ? `user=${gallery.userId}`
+                                : `id=${gallery.id}`
                             }" class="btn btn-primary w-100">閲覧する</a>
                         </div>
                     </div>
@@ -251,8 +343,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                           gallery.imageCount
                                         }枚</small>
                                     </p>
-                                    <a href="gallery-view.html?id=${
-                                      gallery.id
+                                    <a href="gallery-view.html?${
+                                      gallery.userId
+                                        ? `user=${gallery.userId}`
+                                        : `id=${gallery.id}`
                                     }" class="btn btn-primary">閲覧する</a>
                                 </div>
                             </div>
